@@ -26,6 +26,7 @@
       'tipContainer': 'body', // Where will the tip be attached if not inline
       'inline': false, // true or false, if true the tip will be attached after the element
       'tipContent': '#joyRideTipContent', // What is the ID of the <ol> you put the content in
+      'initialHidden': false,
       'postRideCallback': $.noop, // A method to call once the tour closes (canceled or complete)
       'postStepCallback': $.noop // A method to call after each step
     };
@@ -45,7 +46,7 @@
       timerIndicatorInstance,
       timerIndicatorTemplate = '<div class="joyride-timer-indicator-wrap"><span class="joyride-timer-indicator"></span></div>',
       tipTemplate = function(tipClass, index, buttonText, self) { return '<div class="joyride-tip-guide ' +
-        tipClass + '" id="joyRidePopup' + index + '"><span class="joyride-nub"></span>' +
+        tipClass + '" id="joyRidePopup' + index + '" data-for="'+ $(self).data('id') +'""><span class="joyride-nub"></span>' +
         $(self).html() + buttonText + '<a href="#close" class="joyride-close-tip">X</a>' +
         timerIndicatorInstance + '</div>'; },
       tipLayout = function(tipClass, index, buttonText, self) {
@@ -89,8 +90,8 @@
         $('#joyRidePopup' + index).hide();
       });
     }
-
-      showNextTip = function() {
+      // numbero2
+      showNextTip = function(where) {
         var parentElementID = $(tipContent[count]).data('id'),
         parentElement = $('#' + parentElementID),
         opt = {};
@@ -102,7 +103,7 @@
           });
         options = $.extend(options, opt); // Update options and settings
         settings = $.extend(settings, opt);
-
+        
         while (parentElement.offset() === null) {
           count++;
           skipCount++;
@@ -113,6 +114,31 @@
           if ($(tipContent).length < count)
             break;
         }
+        
+        // Start hack
+        console.log(tipContent, parentElementID, parentElement)
+        
+        if (where) {
+          var myparentid = where;
+          var myparentElement = $("#" + where);
+          var mycount = 0;
+          
+          tipContent.each(function(index, item) {
+            if ($(item).data('id') == where) {
+              mycount = index
+            }
+          })
+          
+          // maintain prevCount when user jump from last to first
+          prevCount = skipCount > 0 ? count - skipCount : count - 1;
+          count = mycount
+          parentElement = myparentElement;
+          
+          console.log({ hideCount: hideCount, skipCount: skipCount, count: count, prevCount: prevCount })
+        }
+        
+        // end hack
+        
         var windowHalf = Math.ceil($(window).height() / 2),
         currentTip = $('#joyRidePopup' + count),
         currentTipPosition = parentElement.offset(),
@@ -172,18 +198,28 @@
           $("html, body").animate({
             scrollTop: tipOffset
           }, settings.scrollSpeed);
-
-          if (count > 0) {
+          
+          // HACK: #2 hide the first one, after skipCount > 1
+          if (count >= 0) {
             if (skipCount > 0) {
               var hideCount = prevCount - skipCount;
               skipCount = 0;
             } else {
               var hideCount = prevCount;
             }
+
+            if (hideCount == count) {
+              hideCount = -1;
+            }
             if (settings.tipAnimation == "pop") {
               $('#joyRidePopup' + hideCount).hide();
             } else if (settings.tipAnimation == "fade") {
               $('#joyRidePopup' + hideCount).fadeOut(settings.tipAnimationFadeSpeed);
+            }
+            
+            // HACK: Reset the steps to original state when you are on the first step
+            if (count == 0) {
+              prevCount = -1;
             }
           }
 
@@ -195,6 +231,7 @@
           } else {
             var hideCount = prevCount;
           }
+          
           if (settings.cookieMonster == true) {
             $.cookie(settings.cookieName, 'ridden', { expires: 365, domain: settings.cookieDomain });
           }
@@ -237,6 +274,8 @@
         });
       }
 
+      window.joyride_jump = showNextTip
+
       // +++++++++++++++
       //   Timer
       // +++++++++++++++
@@ -247,7 +286,7 @@
       if (!settings.startTimerOnClick && settings.timer > 0){
        showNextTip();
        interval_id = setInterval(function() {showNextTip()}, settings.timer);
-      } else {
+      } else if (!settings.initialHidden) {
        showNextTip();
       }
       var endTip = function(e, interval_id, cookie, self) {

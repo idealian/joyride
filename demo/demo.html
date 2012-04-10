@@ -41,11 +41,11 @@
 
   	<div class="row">
       <div class="six columns">
-        <h2 id="numero1">Point Out Those New Features!</h2>
+        <h2 id="numero1" class="joyride">Point Out Those New Features!</h2>
         <p>Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Curabitur blandit tempus porttitor. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Aenean lacinia bibendum nulla sed consectetur. Cras mattis consectetur purus sit amet fermentum. Cras mattis consectetur purus sit amet fermentum.</p>
       </div>
       <div class="six columns">
-        <img id="numero3" src="http://placehold.it/430x200">
+        <img id="numero3"  class="joyride" src="http://placehold.it/430x200">
       </div>
     </div>
 
@@ -65,7 +65,7 @@
         <img src="http://placehold.it/280x120">
       </div>
       <div class="eight columns">
-        <h3 id="numero2">Customize Each Stop Along the Way</h3>
+        <h3 id="numero2"  class="joyride">Customize Each Stop Along the Way</h3>
         <p>Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Curabitur blandit tempus porttitor. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Aenean lacinia bibendum nulla sed consectetur. Cras mattis consectetur purus sit amet fermentum. Cras mattis consectetur purus sit amet fermentum.</p>
       </div>
     </div>
@@ -83,6 +83,8 @@
     </div>
 
     <br><br><br><br>
+
+    <a id ="" href="#">Step 1</a>
 
 	</div>
 	    <!-- Tip Content -->
@@ -103,9 +105,21 @@
 
   	<!-- Run the plugin -->
 		<script type="text/javascript">
-			$(window).load(function() {
-				$(this).joyride();
-			});
+		
+    
+			$('.joyride').mouseover(function() {
+			  
+			  if (typeof(joyride_jump) == "undefined") {
+			    $(this).joyride({ initialHidden: true, nextButton: false });
+		    }
+		    
+        if ($("[data-for=" + this.id + "]").not(':visible')) {
+          joyride_jump(this.id)
+        };
+        
+        return false;
+			})
+			
 		</script>
 
 
